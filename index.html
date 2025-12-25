@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lector QR </title>
+    <link rel="stylesheet" href="assets/css/style.css">
+
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="title-qr">Scan QR </h1>
+        <div class="camera-selector">
+            <label for="cameraSelect">Seleccionar Cámara:</label>
+            <select id="cameraSelect">
+                <option value="">Cargando cámaras...</option>
+            </select>
+        </div>
+        <div class="video-container">
+            <video id="video" autoplay playsinline></video>
+        </div>
+        <canvas id="canvas"></canvas>
+        <div class="controls">
+            <button id="startBtn">Iniciar Cámara</button>
+            <button id="stopBtn" disabled>Detener</button>
+        </div>
+        <div id="status" class="status info">
+            Presiona "Iniciar Cámara" para comenzar
+        </div>
+    </div>
+    <script src="/assets/js/qr_scan.js"></script>
+    <script src="/assets/js/zxing_reader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</body>
+
+</html>
