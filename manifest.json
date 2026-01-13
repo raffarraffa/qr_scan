@@ -1,0 +1,17 @@
+{
+  "name": "E-Scan QR WASM",
+  "short_name": "QR Scan",
+  "description": "Lector de códigos QR de alto rendimiento con WebAssembly",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#667eea",
+  "icons": [
+    {
+      "src": "/assets/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
