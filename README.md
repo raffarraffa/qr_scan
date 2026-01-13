@@ -5,6 +5,7 @@ Lector de códigos QR de alto rendimiento utilizando **ZXing WebAssembly** para 
 ## Características
 
 - **Procesamiento WASM**: Utiliza la potencia de C++ compilado a WebAssembly para decodificar códigos QR.
+- **PWA (Progressive Web App)**: Instalable en dispositivos móviles y funciona offline gracias a Service Workers.
 - **Soporte Multicámara**: Selector de dispositivos para alternar entre cámaras frontales, traseras, macro y teleobjetivo.
 - **Diseño Responsive**: Interfaz moderna y adaptable optimizada para dispositivos móviles con efectos de glassmorphism.
 - **Feedback Visual**: Estados en tiempo real (Cargando, Escaneando, Éxito) y modales elegantes con SweetAlert2.
@@ -14,15 +15,17 @@ Lector de códigos QR de alto rendimiento utilizando **ZXing WebAssembly** para 
 
 ```text
 /
-├── index.html            
+├── index.html            # Punto de entrada principal
+├── manifest.json         # Configuración de PWA
+├── sw.js                 # Service Worker para modo offline
 └── assets/
     ├── css/
-    │   └── style.css     
+    │   └── style.css     # Estilos premium (Glassmorphism, Responsivo)
     ├── js/
-    │   ├── qr_scan.js    
-    │   └── zxing_reader.js 
+    │   ├── qr_scan.js    # Lógica de la cámara y escaneo (Refactoreado)
+    │   └── zxing_reader.js # Wrapper de la librería ZXing
     └── wasm/
-        └── zxing_reader.wasm 
+        └── zxing_reader.wasm # Binario WebAssembly de ZXing
 ```
 
 ## Requisitos
@@ -41,6 +44,3 @@ Lector de códigos QR de alto rendimiento utilizando **ZXing WebAssembly** para 
 
 - **locateFile**: Se ha implementado un sistema de rutas relativas para que el script `zxing_reader.js` encuentre correctamente el binario en `assets/wasm/`.
 - **Escalado Dinámico**: El motor intenta leer a resolución original y, si falla, aplica un escalado de 1.5x para capturar detalles más pequeños.
-
----
-Creado para aplicaciones web modernas.
