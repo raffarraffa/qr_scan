@@ -11,6 +11,7 @@ let scanning = false;
 let isPaused = false;
 let animationId = null;
 let selectedDeviceId = null;
+
 async function initZXing() {
   try {
     updateStatus('Cargando módulos...', 'info');
@@ -80,14 +81,13 @@ async function startCamera() {
     let lastError = null;
     for (let i = 0; i < configurations.length; i++) {
       try {
-
         stream = await navigator.mediaDevices.getUserMedia(configurations[i]);
         video.srcObject = stream;
         video.onloadedmetadata = () => {
           startBtn.disabled = true;
           stopBtn.disabled = false;
           scanning = true;
-          updateStatus(`Cámara activa (${video.videoWidth}x${video.videoHeight}). Escaneando...`, 'scanning');
+          updateStatus(`Cámara activa (${video.videoWidth}x${video.videoHeight}). Escaneando QR, códigos de barras y PDF417...`, 'scanning');
           scanBarcode();
         };
         return;
@@ -130,15 +130,45 @@ function stopCamera() {
   updateStatus('Cámara detenida', 'info');
 }
 
-const FORMATS_TO_TRY = ['QRCode'];
+// Formatos a intentar: QR, PDF417 y códigos de barras comunes
+const FORMATS_TO_TRY = [
+  'QRCode',  
+  'Code128',
+  'Code39',
+  'Code93',
+  'EAN13',
+  'EAN8',
+  'UPC_A',
+  'UPC_E',
+  'ITF',
+  'Codabar'
+];
 
-function handleDetectionSuccess(result, type) {
+function getFormatDisplayName(format) {
+  const names = {
+    'QRCode': 'Código QR',
+    'Code128': 'Código de Barras (Code128)',
+    'Code39': 'Código de Barras (Code39)',
+    'Code93': 'Código de Barras (Code93)',
+    'EAN13': 'Código de Barras (EAN-13)',
+    'EAN8': 'Código de Barras (EAN-8)',
+    'UPC_A': 'Código de Barras (UPC-A)',
+    'UPC_E': 'Código de Barras (UPC-E)',
+    'ITF': 'Código de Barras (ITF)',
+    'Codabar': 'Código de Barras (Codabar)'
+  };
+  return names[format] || format;
+}
+
+function handleDetectionSuccess(result, format) {
   if (isPaused) return;
   isPaused = true;
 
+  const displayName = getFormatDisplayName(format);
+
   if (typeof Swal !== 'undefined') {
     Swal.fire({
-      title: `${type} Detectado!`,
+      title: `${displayName} Detectado!`,
       text: result.text,
       icon: 'success',
       timer: 5000,
@@ -152,14 +182,13 @@ function handleDetectionSuccess(result, type) {
       },
       didClose: () => {
         setTimeout(resumeScanning, 500);
-        scanBarcode();
       }
     });
   } else {
-    alert(`${type} Detectado:\n\n${result.text}`);
+    alert(`${displayName} Detectado:\n\n${result.text}`);
     setTimeout(resumeScanning, 1000);
   }
-  updateStatus(`${type} detectado!`, 'success');
+  updateStatus(`${displayName} detectado!`, 'success');
 }
 
 function resumeScanning() {
@@ -230,18 +259,25 @@ cameraSelect.addEventListener('change', (e) => {
 function processImage(originalImageData) {
   if (!scanning || isPaused) return;
   try {
-    const qrResult = tryReadBarcode(originalImageData, 'QRCode');
-    if (qrResult) {
-      handleDetectionSuccess(qrResult, 'QR Code');
-      return;
+    // Intentar con imagen original primero
+    for (const format of FORMATS_TO_TRY) {
+      const result = tryReadBarcode(originalImageData, format);
+      if (result) {
+        handleDetectionSuccess(result, format);
+        return;
+      }
     }
-    const scales = [1.5];
+    
+    // Si no se detectó nada, intentar con escalado (útil para códigos pequeños)
+    const scales = [1.5, 0.7];
     for (const scale of scales) {
       const scaledImageData = scaleImageData(originalImageData, scale);
-      const result = tryReadBarcode(scaledImageData, 'QRCode');
-      if (result) {
-        handleDetectionSuccess(result, 'QR Code');
-        return;
+      for (const format of FORMATS_TO_TRY) {
+        const result = tryReadBarcode(scaledImageData, format);
+        if (result) {
+          handleDetectionSuccess(result, format);
+          return;
+        }
       }
     }
   } catch (error) {
@@ -249,8 +285,6 @@ function processImage(originalImageData) {
   }
   scanBarcode();
 }
-
-
 
 function scaleImageData(imageData, scaleFactor) {
   const scaledWidth = Math.floor(imageData.width * scaleFactor);
@@ -304,7 +338,9 @@ function scanBarcode() {
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
   const originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   requestAnimationFrame(() => processImage(originalImageData));
-} startBtn.addEventListener('click', startCamera);
+}
+
+startBtn.addEventListener('click', startCamera);
 stopBtn.addEventListener('click', stopCamera);
 window.addEventListener('load', () => {
   initZXing();
